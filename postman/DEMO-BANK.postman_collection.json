@@ -1,0 +1,65 @@
+{
+	"info": {
+		"_postman_id": "4847c1cb-bd0f-410a-905e-ac4eb3faf2f1",
+		"name": "DEMO-BANK",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/accounts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/accounts",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts"
+					]
+				},
+				"description": "Retrieves the list of all available accounts"
+			},
+			"response": []
+		},
+		{
+			"name": "/transactions",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"reference\":\"12344C\",\n\t\"account_iban\":\"ES9820385778983000760236\",\n\t\"date\":\"2019-07-16T16:55:42.000Z\",\n\t\"amount\":193.38,\n\t\"fee\":3.18,\n\t\"description\":\"Restaurant payment\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/transactions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					]
+				},
+				"description": "Retrieves the list of all available accounts"
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
