@@ -2,10 +2,13 @@ package com.codechallengebackend.demo.bank.mock;
 
 import com.codechallengebackend.demo.bank.domain.Transaction;
 
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+
 import static com.codechallengebackend.demo.bank.mock.IbanMockGenerator.IBAN_SAMPLE_1;
 
 public class TransactionMockGenerator {
-
 
     public static Transaction transactionWithReference() {
         return new Transaction(
@@ -15,6 +18,21 @@ public class TransactionMockGenerator {
                 100.20D,
                 1.3D,
                 Transaction.TransactionStatus.PENDING,
+                "Card payment");
+    }
+
+    public static Transaction transactionSettled() {
+        final var now = LocalDateTime.now();
+        final var yesterday = now.minus(Period.ofDays(1));
+        final var transactionDate = yesterday.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+
+        return new Transaction(
+                "reference_001",
+                IBAN_SAMPLE_1,
+                transactionDate,
+                100.20D,
+                1.3D,
+                Transaction.TransactionStatus.SETTLED,
                 "Card payment");
     }
 

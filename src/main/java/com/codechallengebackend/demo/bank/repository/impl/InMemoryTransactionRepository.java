@@ -53,4 +53,27 @@ public class InMemoryTransactionRepository implements TransactionRepository {
 
         return transaction;
     }
+
+    @Override
+    public Optional<List<Transaction>> findByAccount(String account, String sortBy) {
+        final var sortArray = sortBy.split(":");
+        final var field = sortArray[0];
+        final var direction = sortArray[1];
+
+        final List<Transaction> transactions = jdbcTemplate
+                .query("SELECT reference, iban, date, amount, fee, status, description FROM transaction where iban = ? order by "
+                        .concat(field.toLowerCase().concat(" ")
+                        .concat(direction.toLowerCase())),
+                    new Object[]{account},
+                    (resultSet, i) -> new Transaction(
+                            resultSet.getString("reference"),
+                            resultSet.getString("iban"),
+                            resultSet.getString("date"),
+                            resultSet.getDouble("amount"),
+                            resultSet.getDouble("fee"),
+                            Transaction.TransactionStatus.valueOf(resultSet.getString("status")),
+                            resultSet.getString("description")));
+
+        return Optional.ofNullable(transactions);
+    }
 }

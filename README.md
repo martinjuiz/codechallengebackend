@@ -1,9 +1,8 @@
-# Marvel - Characters API
+# Coding challenge - Demo BANK API
 
 Author: Martin Juiz
 
-This API is a technical test developed for a Yapily recruitment process and it is intended to consume the 
-Marvel Characters API (https://developer.marvel.com/docs)
+This API is a technical test developed to simulate a banking API handling transactions.
 
 Please read below the installation notes before running the project. 
 
@@ -11,7 +10,7 @@ Please read below the installation notes before running the project.
 
 This project was built using the following tools (therefore all of them are required in order to make it working):
 
-[Java 8](https://java.com/en/download/faq/java8.xml)
+[Java 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
 
 Please verify you have a valid JDK installed in your computer by running the command shown below. Otherwise, you can
 download it from the link provided above.
@@ -30,33 +29,9 @@ download it from the link provided above.
 mvn -version
 ```
 
-
-[Google Cloud Platform SDK](https://cloud.google.com/sdk/docs/quickstarts)
-
-Please verify you have a valid GCP SDK installation in your computer. Otherwise, you can download it from the link provided above.
-
-
 ## Environment configuration
 
-This API also uses a pair of keys in order to consume data from Marvel API plus another key to be able to connect to Google Translate API.
-
-As these keys are sensitive, all of them have been externalized in 2 environment variables:
- 
-1. `CHARACTERS_APPLICATION_CREDENTIALS` must point to `application-codereview.properties` (which contains the Marvel API keys)
-2. `GOOGLE_APPLICATION_CREDENTIALS` must point to `gcp-service-account.txt` (which contains the GCP service account key used to generate the access tokens)
-
-So, before starting the application, please refer to your OS vendor documentation to understand how to configure 
-global environment variables and once that action is done, run the following command to ensure you have set it up correctly (you may be required to restart your terminal): 
-
-MacOS / Linux
-```bash
-echo $CHARACTERS_APPLICATION_CREDENTIALS
-```
-
-Windows
-```bash
-echo %CHARACTERS_APPLICATION_CREDENTIALS%
-```
+This API comes with an out-of-the-box, in-memory database implementation so no environment configurations are required.
 
 
 ## Starting the application
@@ -79,7 +54,7 @@ Once the application is started, the Swagger UI is available at [http://localhos
 
 ## Operations
 
-### GET /characters
+### GET /transactions
 
 Fetches lists of comic characters IDs and keep data cached to serve it quicker once the first call finishes correctly.
 
@@ -97,7 +72,7 @@ Response body:
 ```
 
 
-### GET /characters/{characterId}
+### GET /transactions/search/{account_iban}?sort={amount}
 
 Fetches a single character resource. It is the canonical URI for any character resource provided by the API.
 
@@ -116,7 +91,7 @@ Response body:
 }
 ```
 
-### GET /characters/{characterId}/powers?language={languageCode}
+### POST /transactions
 
 Fetches a single character resource plus the specific powers for the character
 

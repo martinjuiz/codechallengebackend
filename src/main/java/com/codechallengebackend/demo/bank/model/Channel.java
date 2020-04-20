@@ -2,7 +2,7 @@ package com.codechallengebackend.demo.bank.model;
 
 public enum Channel {
 
-    AMT,
+    ATM,
     CLIENT,
     INTERNAL;
 }
