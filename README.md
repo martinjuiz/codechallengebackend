@@ -2,7 +2,7 @@
 
 Author: Martin Juiz
 
-This API is a technical test developed to simulate a banking API handling transactions.
+This project is a Spring-Boot microservice developed to simulate a banking API handling transactions.
 
 Please read below the installation notes before running the project. 
 
@@ -45,11 +45,18 @@ mvn spring-boot:run
 This command starts the application and makes all the RESTFul endpoints available at [https://localhost:8080/marvel](https://localhost:8080/marvel)
 
 
+## Assumptions
+
+- No currency was specified: the microservice does not handle conversions / currency outputs.
+- When the account balance is updated, the new balance is rounded up to 2 decimals.
+- When there is an incoming transaction, the transaction and the account balance update are handled into 2 separate transactions. 
+Ideally, this should be handled in one single transaction but was done in this way to keep it simple and due to time constraints.
+
 ## API documentation
 
-This API is documented using Swagger libraries.
+This API is self-documented using Swagger annotations.
 
-Once the application is started, the Swagger UI is available at [http://localhost:8080/marvel/swagger-ui.html](http://localhost:8080/marvel/swagger-ui.html)
+Once the application is started, the Swagger UI is available at [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 
 ## Operations
@@ -58,17 +65,15 @@ Once the application is started, the Swagger UI is available at [http://localhos
 
 Fetches lists of comic characters IDs and keep data cached to serve it quicker once the first call finishes correctly.
 
-Request : `GET http://localhost:8080/marvel/characters`
+Request : `GET http://localhost:8080/transactions`
 
 Response body:
 ```json
-[
-    1011334,
-    1017100,
-    1009144,
-    1010699,
-    ...
-]
+{
+    "reference": "12341C",
+    "status": "PENDING",
+    "amount": 9.0
+}
 ```
 
 

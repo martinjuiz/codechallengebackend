@@ -6,7 +6,7 @@ import java.lang.annotation.*;
 
 @Documented
 @Constraint(validatedBy = IBANParameterValidation.class)
-@Target( { ElementType.PARAMETER })
+@Target( { ElementType.PARAMETER, ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IBANValidated {
 

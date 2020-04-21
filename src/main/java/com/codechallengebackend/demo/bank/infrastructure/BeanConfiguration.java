@@ -4,7 +4,6 @@ import com.codechallengebackend.demo.bank.adapter.AccountServiceImpl;
 import com.codechallengebackend.demo.bank.adapter.TransactionServiceImpl;
 import com.codechallengebackend.demo.bank.domain.AccountService;
 import com.codechallengebackend.demo.bank.domain.TransactionService;
-import com.codechallengebackend.demo.bank.domain.validator.TransactionValidator;
 import com.codechallengebackend.demo.bank.repository.AccountRepository;
 import com.codechallengebackend.demo.bank.repository.TransactionRepository;
 import com.codechallengebackend.demo.bank.repository.impl.InMemoryAccountRepository;
@@ -31,17 +30,12 @@ public class BeanConfiguration {
     }
 
     @Bean
-    public TransactionValidator transactionValidator() {
-        return new TransactionValidator();
-    }
-
-    @Bean
     public AccountService accountService(@Autowired JdbcTemplate jdbcTemplate) {
         return new AccountServiceImpl(accountRepository());
     }
 
     @Bean
     public TransactionService transactionService(@Autowired JdbcTemplate jdbcTemplate) {
-        return new TransactionServiceImpl(transactionRepository(), transactionValidator());
+        return new TransactionServiceImpl(transactionRepository());
     }
 }

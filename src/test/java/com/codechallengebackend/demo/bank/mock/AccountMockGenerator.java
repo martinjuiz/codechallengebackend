@@ -10,10 +10,9 @@ public class AccountMockGenerator {
     public static Account account(String id) {
         return new Account(
                 id,
-                "",
-                "",
-                100D, 100D,
-                1000D, 0D
+                IbanMockGenerator.IBAN_SAMPLE_2,
+                "Sample account",
+                100D
         );
     }
 

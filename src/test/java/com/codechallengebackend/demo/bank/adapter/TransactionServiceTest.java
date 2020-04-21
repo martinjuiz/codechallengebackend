@@ -3,13 +3,10 @@ package com.codechallengebackend.demo.bank.adapter;
 import com.codechallengebackend.demo.bank.config.TestBeanConfiguration;
 import com.codechallengebackend.demo.bank.domain.Transaction;
 import com.codechallengebackend.demo.bank.domain.TransactionService;
-import com.codechallengebackend.demo.bank.domain.validator.TransactionValidator;
-import com.codechallengebackend.demo.bank.exception.InvalidTransactionDetailsException;
 import com.codechallengebackend.demo.bank.mock.IbanMockGenerator;
 import com.codechallengebackend.demo.bank.mock.TransactionMockGenerator;
 import com.codechallengebackend.demo.bank.model.Channel;
 import com.codechallengebackend.demo.bank.repository.TransactionRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -30,59 +27,16 @@ public class TransactionServiceTest {
     @Mock
     private TransactionRepository transactionRepository;
 
-    @Mock
-    private TransactionValidator transactionValidator;
-
     @BeforeEach
     public void setUp() {
-        transactionService = new TransactionServiceImpl(transactionRepository, transactionValidator);
+        transactionService = new TransactionServiceImpl(transactionRepository);
     }
 
-    @Test
-    public void WhenTransactionReferenceFormatIsInvalid_ThenSystemRejectsTheTransaction() {
-        doThrow(InvalidTransactionDetailsException.class).when(transactionValidator).validate(any(Transaction.class));
-
-        Transaction transaction = TransactionMockGenerator.transactionWithInvalidReference();
-
-        Assertions.assertThrows(InvalidTransactionDetailsException.class,
-                () -> transactionService.create(transaction));
-    }
-
-    @Test
-    public void WhenTransactionIbanFormatIsInvalid_ThenSystemRejectsTheTransaction() {
-        doThrow(InvalidTransactionDetailsException.class).when(transactionValidator).validate(any(Transaction.class));
-
-        Transaction transaction = TransactionMockGenerator.transactionWithInvalidIban();
-
-        Assertions.assertThrows(InvalidTransactionDetailsException.class,
-                () -> transactionService.create(transaction));
-    }
-
-    @Test
-    public void WhenTransactionDateFormatIsInvalid_ThenSystemRejectsTheTransaction() {
-
-    }
-
-    @Test
-    public void WhenTransactionAmountFormatIsInvalid_ThenSystemRejectsTheTransaction() {
-
-    }
-
-    @Test
-    public void WhenTransactionFeeFormatIsInvalid_ThenSystemRejectsTheTransaction() {
-
-    }
-
-    @Test
-    public void WhenTransactionDescriptionFormatIsInvalid_ThenSystemRejectsTheTransaction() {
-
-    }
 
     @Test
     public void WhenTransactionReferenceIsNotProvided_ThenSystemGeneratesOne() {
         Transaction transaction = TransactionMockGenerator.transactionWithEmptyReference();
 
-        doNothing().when(transactionValidator).validate(any(Transaction.class));
         Transaction newTransaction = TransactionMockGenerator.transactionWithReference();
         when(transactionRepository.insert(any(Transaction.class))).thenReturn(Optional.of(newTransaction));
 
@@ -93,12 +47,14 @@ public class TransactionServiceTest {
 
     @Test
     public void WhenTransactionReferenceIsProvided_ThenSystemReturnsSameValue() {
+        Transaction transaction = TransactionMockGenerator.transactionWithReference();
 
-    }
+        Transaction newTransaction = TransactionMockGenerator.transactionWithReference();
+        when(transactionRepository.insert(any(Transaction.class))).thenReturn(Optional.of(newTransaction));
 
-    @Test
-    public void WhenTransactionAmountIsGreaterThanAccountBalance_ThenSystemRejectsTheTransaction() {
-
+        Transaction created = transactionService.create(transaction);
+        Assert.notNull(created, "Something went wrong creating the transaction in the system");
+        Assert.hasText(created.getReference(), "The system did not create a reference for the transaction");
     }
 
     @Test

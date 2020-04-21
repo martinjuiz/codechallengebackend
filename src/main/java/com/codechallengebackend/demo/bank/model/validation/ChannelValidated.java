@@ -7,5 +7,5 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = ChannelParameterValidation.class)
 @Target( { ElementType.METHOD, ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ChannelAnnotation {
+public @interface ChannelValidated {
 }

@@ -41,7 +41,7 @@ public class TransactionMockGenerator {
                 "",
                 IBAN_SAMPLE_1,
                 "2019-07-16T16:55:42.000Z",
-                100.20D,
+                -100.20D,
                 1.3D,
                 Transaction.TransactionStatus.PENDING,
                 "Card payment");

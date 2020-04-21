@@ -2,31 +2,51 @@ package com.codechallengebackend.demo.bank.adapter;
 
 import com.codechallengebackend.demo.bank.domain.Transaction;
 import com.codechallengebackend.demo.bank.domain.TransactionService;
-import com.codechallengebackend.demo.bank.domain.validator.TransactionValidator;
 import com.codechallengebackend.demo.bank.exception.InvalidTransactionDetailsException;
 import com.codechallengebackend.demo.bank.model.Channel;
 import com.codechallengebackend.demo.bank.repository.TransactionRepository;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final TransactionValidator transactionValidator;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionValidator transactionValidator) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
-        this.transactionValidator = transactionValidator;
+    }
+
+    protected String getSaltString() {
+        String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < 18) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+            salt.append(SALTCHARS.charAt(index));
+        }
+        String saltStr = salt.toString();
+        return saltStr;
+
     }
 
     @Override
     public Transaction create(Transaction transaction) {
-
-        transactionValidator.validate(transaction);
+        if(StringUtils.isEmpty(transaction.getReference())) {
+            String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+            StringBuilder salt = new StringBuilder();
+            Random rnd = new Random();
+            while (salt.length() < 10) { // length of the random string.
+                int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+                salt.append(SALTCHARS.charAt(index));
+            }
+            transaction.setReference(salt.toString());
+        }
 
         return transactionRepository.insert(transaction)
                 .orElseThrow(InvalidTransactionDetailsException::new);

@@ -1,11 +1,14 @@
 package com.codechallengebackend.demo.bank.adapter;
 
-import com.codechallengebackend.demo.bank.adapter.AccountServiceImpl;
 import com.codechallengebackend.demo.bank.config.TestBeanConfiguration;
 import com.codechallengebackend.demo.bank.domain.Account;
 import com.codechallengebackend.demo.bank.domain.AccountService;
+import com.codechallengebackend.demo.bank.exception.IBANNotFoundException;
+import com.codechallengebackend.demo.bank.exception.InsufficientAccountBalanceException;
 import com.codechallengebackend.demo.bank.mock.AccountMockGenerator;
+import com.codechallengebackend.demo.bank.mock.IbanMockGenerator;
 import com.codechallengebackend.demo.bank.repository.AccountRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -13,8 +16,11 @@ import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @SpringJUnitWebConfig(TestBeanConfiguration.class)
 public class AccountServiceTest {
@@ -40,5 +46,43 @@ public class AccountServiceTest {
         Assert.notNull(availableAccounts, DEFAULT_ACCOUNTS_NOT_FOUND_ERROR);
         Assert.notEmpty(availableAccounts, DEFAULT_ACCOUNTS_NOT_FOUND_ERROR);
         Assert.noNullElements(availableAccounts, DEFAULT_ACCOUNTS_NOT_FOUND_ERROR);
+    }
+
+    @Test
+    public void WhenTransactionAmountIsEqualsOrLessThanAccountBalance_ThenTransactionIsAccepted() {
+        Account account = AccountMockGenerator.account(UUID.randomUUID().toString());
+        when(accountRepository.findByIBAN(anyString())).thenReturn(Optional.of(account));
+
+        accountService.canBeDebited(IbanMockGenerator.IBAN_SAMPLE_2, 10D);
+
+        verify(accountRepository, times(1)).findByIBAN(anyString());
+    }
+
+    @Test
+    public void WhenIBANDoesNotExist_ThenSystemThrowsException() {
+        when(accountRepository.findByIBAN(anyString())).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(IBANNotFoundException.class,
+                () -> accountService.canBeDebited(IbanMockGenerator.IBAN_SAMPLE_2, 10D));
+    }
+
+    @Test
+    public void WhenTransactionAmountIsGreaterThanAccountBalance_ThenTransactionIsRejected() {
+        Account account = AccountMockGenerator.account(UUID.randomUUID().toString());
+        when(accountRepository.findByIBAN(anyString())).thenReturn(Optional.of(account));
+
+        Assertions.assertThrows(InsufficientAccountBalanceException.class,
+                () -> accountService.canBeDebited(IbanMockGenerator.IBAN_SAMPLE_2, -100000D));
+    }
+
+    @Test
+    public void WhenTransactionAmountIsPositive_ThenAccountIsCredited() {
+        Account account = AccountMockGenerator.account(UUID.randomUUID().toString());
+        when(accountRepository.findByIBAN(anyString())).thenReturn(Optional.of(account));
+        doNothing().when(accountRepository).updateBalance(any(Account.class));
+
+        accountService.updateBalance(IbanMockGenerator.IBAN_SAMPLE_2, 100D);
+
+        verify(accountRepository, times(1)).findByIBAN(anyString());
     }
 }

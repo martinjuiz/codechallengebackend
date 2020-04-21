@@ -1,5 +1,6 @@
 package com.codechallengebackend.demo.bank.application;
 
+import com.codechallengebackend.demo.bank.domain.AccountService;
 import com.codechallengebackend.demo.bank.domain.Transaction;
 import com.codechallengebackend.demo.bank.domain.TransactionService;
 import com.codechallengebackend.demo.bank.exception.NoTransactionsFoundException;
@@ -23,8 +24,11 @@ public class TransactionsController {
 
     private final TransactionService transactionService;
 
-    public TransactionsController(TransactionService transactionService) {
+    private AccountService accountService;
+
+    public TransactionsController(TransactionService transactionService, AccountService accountService) {
         this.transactionService = transactionService;
+        this.accountService = accountService;
     }
 
 
@@ -74,9 +78,16 @@ public class TransactionsController {
                 body.getDate(), body.getAmount(), body.getFee(),
                 body.getDescription());
 
-        final Transaction created = transactionService.create(transaction);
+        // Check account has enough balance to accept the transaction
+        accountService.canBeDebited(transaction.getIban(), transaction.getAmount());
 
-        CreateTransactionResponse response = new CreateTransactionResponse(created.getReference());
+        // Create the transaction
+        final Transaction createdTx = transactionService.create(transaction);
+
+        // Debit account
+        accountService.updateBalance(transaction.getIban(), transaction.getAmount());
+
+        CreateTransactionResponse response = new CreateTransactionResponse(createdTx.getReference());
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

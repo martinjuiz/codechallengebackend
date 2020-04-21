@@ -3,8 +3,10 @@ package com.codechallengebackend.demo.bank.controller;
 import com.codechallengebackend.demo.bank.application.ExceptionController;
 import com.codechallengebackend.demo.bank.application.TransactionsController;
 import com.codechallengebackend.demo.bank.config.TestBeanConfiguration;
+import com.codechallengebackend.demo.bank.domain.AccountService;
 import com.codechallengebackend.demo.bank.domain.Transaction;
 import com.codechallengebackend.demo.bank.domain.TransactionService;
+import com.codechallengebackend.demo.bank.exception.InsufficientAccountBalanceException;
 import com.codechallengebackend.demo.bank.mock.CreateTransactionRequestMockGenerator;
 import com.codechallengebackend.demo.bank.mock.IbanMockGenerator;
 import com.codechallengebackend.demo.bank.mock.TransactionMockGenerator;
@@ -26,7 +28,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -45,6 +47,9 @@ public class TransactionsControllerTest {
     @Mock
     private TransactionService transactionService;
 
+    @Mock
+    private AccountService accountService;
+
     @InjectMocks
     private TransactionsController transactionsController;
 
@@ -58,11 +63,13 @@ public class TransactionsControllerTest {
     }
 
     @Test
-    public void WhenTransactionHasNoReference_ThenSystemGeneratesOne() throws Exception {
+    public void WhenTransactionAmountIsLessOrEqualsToAccountBalance_ThenSystemAcceptsTheTransaction() throws Exception {
         CreateTransactionRequest request = CreateTransactionRequestMockGenerator.transactionWithoutReferenceOk();
 
         final Transaction created = TransactionMockGenerator.transactionWithReference();
+        doNothing().when(accountService).canBeDebited(anyString(), any(Double.class));
         when(transactionService.create(any(Transaction.class))).thenReturn(created);
+        doNothing().when(accountService).updateBalance(anyString(), any(Double.class));
 
         final String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -71,6 +78,26 @@ public class TransactionsControllerTest {
                 .content(jsonRequest)
                 .contentType(APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk());
+
+        verify(accountService, times(1)).canBeDebited(anyString(), any(Double.class));
+        verify(transactionService, times(1)).create(any(Transaction.class));
+        verify(accountService, times(1)).updateBalance(anyString(), any(Double.class));
+    }
+
+    @Test
+    public void WhenTransactionAmountIsGreaterThanAccountBalance_ThenSystemRejectsTheTransaction() throws Exception {
+        CreateTransactionRequest request = CreateTransactionRequestMockGenerator.transactionWithoutReferenceOk();
+        doThrow(InsufficientAccountBalanceException.class).when(accountService).canBeDebited(anyString(), any(Double.class));
+
+        final String jsonRequest = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(post(TRANSACTIONS_URI)
+                .accept(APPLICATION_JSON_VALUE)
+                .content(jsonRequest)
+                .contentType(APPLICATION_JSON_VALUE))
+                .andExpect(status().isForbidden());
+
+        verify(accountService, times(1)).canBeDebited(anyString(), any(Double.class));
     }
 
     @Test

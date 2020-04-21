@@ -14,28 +14,17 @@ public class GetAccountResponse {
 
     private Double balance;
 
-    @JsonProperty("balance_including_pending")
-    private Double balanceIncPending;
-
-    private Double overdraft;
-
-    private Double pending;
-
-    public GetAccountResponse(String id, String iban, String name, Double balance, Double balanceIncPending, Double overdraft, Double pending) {
+    public GetAccountResponse(String id, String iban, String name, Double balance) {
         this.id = id;
         this.iban = iban;
         this.name = name;
         this.balance = balance;
-        this.balanceIncPending = balanceIncPending;
-        this.overdraft = overdraft;
-        this.pending = pending;
     }
 
     public static GetAccountResponse of(Account account) {
         return new GetAccountResponse(
                 account.getId(), account.getIban(), account.getName(),
-                account.getBalance(), account.getBalanceIncPending(), account.getOverdraft(), account.getPending()
-        );
+                account.getBalance());
     }
 
     public String getId() {
@@ -70,27 +59,4 @@ public class GetAccountResponse {
         this.balance = balance;
     }
 
-    public Double getBalanceIncPending() {
-        return balanceIncPending;
-    }
-
-    public void setBalanceIncPending(Double balanceIncPending) {
-        this.balanceIncPending = balanceIncPending;
-    }
-
-    public Double getOverdraft() {
-        return overdraft;
-    }
-
-    public void setOverdraft(Double overdraft) {
-        this.overdraft = overdraft;
-    }
-
-    public Double getPending() {
-        return pending;
-    }
-
-    public void setPending(Double pending) {
-        this.pending = pending;
-    }
 }

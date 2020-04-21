@@ -1,5 +1,6 @@
 package com.codechallengebackend.demo.bank.model;
 
+import com.codechallengebackend.demo.bank.model.validation.IBANValidated;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotEmpty;
@@ -11,6 +12,7 @@ public class CreateTransactionRequest {
 
     @NotNull
     @NotEmpty
+    @IBANValidated
     @JsonProperty("account_iban")
     private String iban;
 

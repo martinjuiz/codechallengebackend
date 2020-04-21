@@ -1,6 +1,6 @@
 package com.codechallengebackend.demo.bank.model;
 
-import com.codechallengebackend.demo.bank.model.validation.ChannelAnnotation;
+import com.codechallengebackend.demo.bank.model.validation.ChannelValidated;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -13,7 +13,7 @@ public class GetTransactionStatusRequest {
 
     @NotNull
     @NotEmpty
-    @ChannelAnnotation
+    @ChannelValidated
     private Channel channel;
 
     public GetTransactionStatusRequest() {}

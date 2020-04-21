@@ -6,10 +6,10 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 
-public class ChannelParameterValidation implements ConstraintValidator<ChannelAnnotation, String> {
+public class ChannelParameterValidation implements ConstraintValidator<ChannelValidated, String> {
 
     @Override
-    public void initialize(ChannelAnnotation constraintAnnotation) {
+    public void initialize(ChannelValidated channelValidated) {
 
     }
 

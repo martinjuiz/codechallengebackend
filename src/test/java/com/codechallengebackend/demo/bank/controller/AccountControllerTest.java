@@ -1,6 +1,7 @@
 package com.codechallengebackend.demo.bank.controller;
 
 import com.codechallengebackend.demo.bank.application.AccountController;
+import com.codechallengebackend.demo.bank.application.ExceptionController;
 import com.codechallengebackend.demo.bank.config.TestBeanConfiguration;
 import com.codechallengebackend.demo.bank.domain.Account;
 import com.codechallengebackend.demo.bank.domain.AccountService;
@@ -40,7 +41,7 @@ public class AccountControllerTest {
         objectMapper = new ObjectMapper();
         mockMvc = MockMvcBuilders
                 .standaloneSetup(accountController)
-//                .setControllerAdvice(new ExceptionController(objectMapper))
+                .setControllerAdvice(new ExceptionController(objectMapper))
                 .build();
     }
 
@@ -52,5 +53,4 @@ public class AccountControllerTest {
         mockMvc.perform(get(ACCOUNTS_URI))
                 .andExpect(status().isOk());
     }
-
 }
