@@ -7,45 +7,31 @@ import com.codechallengebackend.demo.bank.model.Channel;
 import com.codechallengebackend.demo.bank.repository.TransactionRepository;
 import org.springframework.util.StringUtils;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.function.BiFunction;
 
 public class TransactionServiceImpl implements TransactionService {
 
+    private static final String TRANSACTION_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private final TransactionRepository transactionRepository;
 
     public TransactionServiceImpl(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
 
-    protected String getSaltString() {
-        String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-        StringBuilder salt = new StringBuilder();
-        Random rnd = new Random();
-        while (salt.length() < 18) { // length of the random string.
-            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
-            salt.append(SALTCHARS.charAt(index));
-        }
-        String saltStr = salt.toString();
-        return saltStr;
-
-    }
-
     @Override
     public Transaction create(Transaction transaction) {
         if(StringUtils.isEmpty(transaction.getReference())) {
-            String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-            StringBuilder salt = new StringBuilder();
-            Random rnd = new Random();
-            while (salt.length() < 10) { // length of the random string.
-                int index = (int) (rnd.nextFloat() * SALTCHARS.length());
-                salt.append(SALTCHARS.charAt(index));
-            }
-            transaction.setReference(salt.toString());
+            transaction.setReference(generateReference());
+        }
+
+        if(StringUtils.isEmpty(transaction.getDate())) {
+            SimpleDateFormat sdf = new SimpleDateFormat(TRANSACTION_DATE_FORMAT);
+            transaction.setDate(sdf.format(new Date()));
         }
 
         return transactionRepository.insert(transaction)
@@ -60,22 +46,24 @@ public class TransactionServiceImpl implements TransactionService {
             transaction = record.get();
             final var now = LocalDate.now().atStartOfDay();
             final var transactionDate = LocalDateTime
-                    .parse(transaction.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
+                    .parse(transaction.getDate(), DateTimeFormatter.ofPattern(TRANSACTION_DATE_FORMAT))
                     .toLocalDate().atStartOfDay();
+
+            BiFunction<Double, Double, Double> parseAmount = (amount, fee) -> (double) Math.round(amount - fee);
 
             if(transactionDate.isBefore(now) && (Channel.ATM.equals(Channel.valueOf(channel)) || Channel.CLIENT.equals(Channel.valueOf(channel)))) {
                 transaction.setStatus(Transaction.TransactionStatus.SETTLED);
-                transaction.setAmount(transaction.getAmount() - transaction.getFee());
+                transaction.setAmount(parseAmount.apply(transaction.getAmount(), transaction.getFee()));
                 transaction.setFee(null);
             }
             else if(transactionDate.isAfter(now) && Channel.CLIENT.equals(Channel.valueOf(channel))) {
                 transaction.setStatus(Transaction.TransactionStatus.FUTURE);
-                transaction.setAmount(transaction.getAmount() - transaction.getFee());
+                transaction.setAmount(parseAmount.apply(transaction.getAmount(), transaction.getFee()));
                 transaction.setFee(null);
             }
             else if(transactionDate.isAfter(now) && Channel.ATM.equals(Channel.valueOf(channel))) {
                 transaction.setStatus(Transaction.TransactionStatus.PENDING);
-                transaction.setAmount(transaction.getAmount() - transaction.getFee());
+                transaction.setAmount(parseAmount.apply(transaction.getAmount(), transaction.getFee()));
                 transaction.setFee(null);
             }
             else if(transactionDate.isAfter(now) && Channel.INTERNAL.equals(Channel.valueOf(channel))) {
@@ -92,7 +80,6 @@ public class TransactionServiceImpl implements TransactionService {
             else if(isTransactionExecutedToday(transactionDate) && Channel.INTERNAL.equals(Channel.valueOf(channel))) {
                 transaction.setStatus(Transaction.TransactionStatus.PENDING);
             }
-
         }
 
         return Optional.ofNullable(transaction);

@@ -42,15 +42,17 @@ Once you have validated all the pre-requisites, just run this command from the r
 mvn spring-boot:run
 ```
 
-This command starts the application and makes all the RESTFul endpoints available at [https://localhost:8080/marvel](https://localhost:8080/marvel)
+This command starts the application and makes all the RESTFul endpoints available at [http://localhost:8080/](http://localhost:8080/)
 
 
 ## Assumptions
 
 - No currency was specified: the microservice does not handle conversions / currency outputs.
 - When the account balance is updated, the new balance is rounded up to 2 decimals.
+- The application creates 3 accounts with positive balance just for testing purposes.
 - When there is an incoming transaction, the transaction and the account balance update are handled into 2 separate transactions. 
 Ideally, this should be handled in one single transaction but was done in this way to keep it simple and due to time constraints.
+
 
 ## API documentation
 
@@ -61,176 +63,112 @@ Once the application is started, the Swagger UI is available at [http://localhos
 
 ## Operations
 
-### GET /transactions
+### GET /accounts
 
-Fetches lists of comic characters IDs and keep data cached to serve it quicker once the first call finishes correctly.
+Lists all the available accounts.
 
-Request : `GET http://localhost:8080/transactions`
+Request : `GET http://localhost:8080/accounts`
 
 Response body:
 ```json
-{
-    "reference": "12341C",
-    "status": "PENDING",
-    "amount": 9.0
-}
+[
+    {
+        "id": "0",
+        "name": "Sample account 1",
+        "balance": 100.2,
+        "account_iban": "ES9820385778983000760236"
+    },
+    {
+        "id": "1",
+        "name": "Sample account 2",
+        "balance": 1500.11,
+        "account_iban": "ES0420805237723522472951"
+    },
+    {
+        "id": "2",
+        "name": "Sample account 3",
+        "balance": 6500.0,
+        "account_iban": "ES1314656632903771443652"
+    }
+]
 ```
 
 
-### GET /transactions/search/{account_iban}?sort={amount}
+### GET /transactions?reference={reference}&channel={channel}
 
-Fetches a single character resource. It is the canonical URI for any character resource provided by the API.
+Fetches a single transaction given a valid reference and channel.
 
-Request : `GET http://localhost:8080/marvel/characters/1009233`
+Request : `GET http://localhost:8080/transactions?reference=Q8PQABUHYX&channel=INTERNAL`
 
 Response body:
 ```json
 {
-    "id": 1009233,
-    "name": "Chamber",
-    "description": "",
-    "thumbnail": {
-        "path": "http://i.annihil.us/u/prod/marvel/i/mg/2/80/4c00406e4731b",
-        "extension": "jpg"
-    }
+    "reference": "Q8PQABUHYX",
+    "status": "PENDING",
+    "amount": -10.01,
+    "fee": 1.01
+}
+```
+
+### GET /transactions/searching/?account_iban={iban}&sort={sortBy}
+
+List all the transactions for a specific account and sort them by amount in ascending or descending order.
+
+Request : `GET http://localhost:8080/transactions/searching/?account_iban=ES9820385778983000760236&sort=amount:asc`
+
+Response body:
+```json
+{
+    "transactions": [
+        {
+            "reference": "Q8PQABUHYX",
+            "iban": "ES9820385778983000760236",
+            "date": "2020-09-29T11:50:36.872Z",
+            "amount": -10.01,
+            "fee": 1.01,
+            "description": "Card payment"
+        },
+        {
+            "reference": "3O22YR71EA",
+            "iban": "ES9820385778983000760236",
+            "date": "2020-09-29T13:41:02.425Z",
+            "amount": 1.01,
+            "fee": 1.01,
+            "description": "Card payment"
+        },
+        {
+            "reference": "CIOWPV1OE4",
+            "iban": "ES9820385778983000760236",
+            "date": "2020-09-29T13:41:07.838Z",
+            "amount": 18.01,
+            "fee": 1.01,
+            "description": "Card payment"
+        }
+    ]
 }
 ```
 
 ### POST /transactions
 
-Fetches a single character resource plus the specific powers for the character
+Creates a new transaction and returns the transaction reference (please check all the considerations listed below):
 
-Optionally, it allows a query parameter so the character's powers can be translated to the specific
-language code (the format must be compliant with [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) standardized nomenclature).
-
-Request without `languageCode` parameter : `GET http://localhost:8080/marvel/characters/1009430/powers`
-
-Response body:
-```json
-{
-    "id": 1009430,
-    "name": "Rachel Grey",
-    "description": "",
-    "thumbnail": {
-        "path": "http://i.annihil.us/u/prod/marvel/i/mg/d/10/52741143108e7",
-        "extension": "jpg"
-    },
-    "powers": [
-        {
-            "power": "durability",
-            "rating": "4"
-        },
-        {
-            "power": "energy",
-            "rating": "7"
-        },
-        {
-            "power": "fighting skills",
-            "rating": "4"
-        },
-        {
-            "power": "intelligence",
-            "rating": "3"
-        },
-        {
-            "power": "speed",
-            "rating": "6"
-        },
-        {
-            "power": "strength",
-            "rating": "3"
-        }
-    ]
-}
-```
-
-
-Request with `languageCode` query parameter and no powers array returned : `GET -H 'Authorization: accessToken' http://localhost:8080/marvel/characters/1009688/powers`
-
-Before submitting the request, you'll need to generate an access token. To do that, please open a new terminal session and run this command:
-
-```bash
-gcloud auth application-default print-access-token
-```
-
-Copy the value generated and paste into the `Authorization` header value.
+- Request without `reference` value will make the backend to generate one.
+- Request with `reference` value has to have a length between 1 and 10 chars.
+- Request without `date` value will make the backend to fill the current date.
+- Request with `date` value must use the pattern yyyy-MM-dd'T'HH:mm:ss.SSS'Z'.
 
 Response body:
 ```json
 {
-    "id": 1009688,
-    "name": "Carmella Unuscione",
-    "description": "Carmella Unuscione was one of the first members of the Magneto's Acolytes.",
-    "thumbnail": {
-        "path": "http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available",
-        "extension": "jpg"
-    },
-    "powers": []
+    "reference": "CIOWPV1OE4"
 }
 ```
-
-
-Request with `languageCode` query parameter and character's powers translated : `GET -H 'Authorization: accessToken' http://localhost:8080/marvel/characters/1009233/powers?language=es`
-
-Before submitting the request, you'll need to generate an access token. To do that, please open a new terminal session and run this command:
-
-```bash
-gcloud auth application-default print-access-token
-```
-
-Copy the value generated and paste into the `Authorization` header value.
-
-Response body:
-```json
-{
-    "id": 1009233,
-    "name": "Chamber",
-    "description": "",
-    "thumbnail": {
-        "path": "http://i.annihil.us/u/prod/marvel/i/mg/2/80/4c00406e4731b",
-        "extension": "jpg"
-    },
-    "powers": [
-        {
-            "power": "inteligencia",
-            "rating": "3"
-        },
-        {
-            "power": "fuerza",
-            "rating": "2"
-        },
-        {
-            "power": "durabilidad",
-            "rating": "6"
-        },
-        {
-            "power": "energía",
-            "rating": "4"
-        },
-        {
-            "power": "velocidad",
-            "rating": "2"
-        },
-        {
-            "power": "habilidades de lucha",
-            "rating": "4"
-        }
-    ]
-}
-```
-
-Notes:
-
-1. The parameter `languageCode` follows the format defined by ISO-639-1
-2. Any `languageCode` not available in this [list](https://cloud.google.com/translate/docs/languages) will throw an exception.
-3. The source language is always **'en'** (English) as Marvel Wiki is written in this language.
-4. As per described in the previous point, the target language cannot be **'en'**: if you send this value, the API will throw an exception.
 
 
 ## Testing the API
 
-TDD was used as the strategy to develop the entire Spring Boot project. Each service / controller has a specific test class
-and different unit test cases to prove all scenarios were covered.
+ATDD was used as the strategy to develop the entire application. Each layer has specific test cases to prove 
+all scenarios were covered.
 
 To run all the tests, run this command from the project root folder:
 

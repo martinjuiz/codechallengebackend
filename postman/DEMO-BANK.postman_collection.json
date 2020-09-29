@@ -28,6 +28,68 @@
 		{
 			"name": "/transactions",
 			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference=Q8PQABUHYX&channel=INTERNAL",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "Q8PQABUHYX"
+						},
+						{
+							"key": "channel",
+							"value": "INTERNAL"
+						}
+					]
+				},
+				"description": "Retrieves the list of all available accounts"
+			},
+			"response": []
+		},
+		{
+			"name": "/transactions/searching",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions/searching/?account_iban=ES9820385778983000760236&sort=amount:asc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions",
+						"searching",
+						""
+					],
+					"query": [
+						{
+							"key": "account_iban",
+							"value": "ES9820385778983000760236"
+						},
+						{
+							"key": "sort",
+							"value": "amount:asc"
+						}
+					]
+				},
+				"description": "Retrieves the list of all available accounts"
+			},
+			"response": []
+		},
+		{
+			"name": "/transactions",
+			"request": {
 				"method": "POST",
 				"header": [
 					{
@@ -38,7 +100,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"reference\":\"12344C\",\n\t\"account_iban\":\"ES9820385778983000760236\",\n\t\"date\":\"2019-07-16T16:55:42.000Z\",\n\t\"amount\":193.38,\n\t\"fee\":3.18,\n\t\"description\":\"Restaurant payment\"\n}",
+					"raw": "{\n\t\"reference\":\"\",\n\t\"account_iban\":\"ES9820385778983000760236\",\n\t\"date\":\"\",\n\t\"amount\":18.01,\n\t\"fee\":1.01,\n\t\"description\":\"Card payment\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
