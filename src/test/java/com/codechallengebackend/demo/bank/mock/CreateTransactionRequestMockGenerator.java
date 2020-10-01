@@ -1,6 +1,6 @@
 package com.codechallengebackend.demo.bank.mock;
 
-import com.codechallengebackend.demo.bank.model.CreateTransactionRequest;
+import com.codechallengebackend.demo.bank.controller.model.CreateTransactionRequest;
 
 import static com.codechallengebackend.demo.bank.mock.IbanMockGenerator.IBAN_SAMPLE_1;
 

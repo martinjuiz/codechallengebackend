@@ -1,10 +1,8 @@
 package com.codechallengebackend.demo.bank.controller;
 
-import com.codechallengebackend.demo.bank.application.AccountController;
-import com.codechallengebackend.demo.bank.application.ExceptionController;
 import com.codechallengebackend.demo.bank.config.TestBeanConfiguration;
 import com.codechallengebackend.demo.bank.domain.Account;
-import com.codechallengebackend.demo.bank.domain.AccountService;
+import com.codechallengebackend.demo.bank.service.AccountService;
 import com.codechallengebackend.demo.bank.mock.AccountMockGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

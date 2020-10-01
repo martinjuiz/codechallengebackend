@@ -7,6 +7,28 @@
 	"item": [
 		{
 			"name": "/accounts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ed4e0e7b-bf02-426e-a136-3a9b32a35252",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Application has 3 accounts configured\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData)",
+							"        .to.be.an('array')",
+							"        .and",
+							"        .has.lengthOf(3);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -26,12 +48,31 @@
 			"response": []
 		},
 		{
-			"name": "/transactions",
+			"name": "BUSINESS_RULE_A",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b3c36031-33d3-49c4-b8f3-f144777c1b21",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"INVALID\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/transactions?reference=Q8PQABUHYX&channel=INTERNAL",
+					"raw": "http://localhost:8080/transactions?reference=zzz&channel=INTERNAL",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -43,7 +84,7 @@
 					"query": [
 						{
 							"key": "reference",
-							"value": "Q8PQABUHYX"
+							"value": "zzz"
 						},
 						{
 							"key": "channel",
@@ -51,12 +92,623 @@
 						}
 					]
 				},
+				"description": " Given: A transaction that is not stored in our system\n When: I check the status from any channel\n Then: The system returns the status 'INVALID'"
+			},
+			"response": []
+		},
+		{
+			"name": "/transactions (date is before today)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b72781f4-08f6-4462-8feb-de6678a31615",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction created successfully\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.reference).has.length;",
+							"    pm.globals.set(\"reference\", jsonData.reference);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "408f626b-6745-4a8b-af8c-e8299624469f",
+						"exec": [
+							"pm.environment.unset(\"reference\");",
+							"pm.environment.unset(\"transactionDate\");",
+							"",
+							"var moment = require('moment')",
+							"pm.globals.set(\"transactionDate\", moment().add(-1, 'd').toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"reference\":\"\",\n\t\"account_iban\":\"ES9820385778983000760236\",\n\t\"date\":\"{{transactionDate}}\",\n\t\"amount\":18.01,\n\t\"fee\":1.01,\n\t\"description\":\"Card payment\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/transactions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					]
+				},
 				"description": "Retrieves the list of all available accounts"
 			},
 			"response": []
 		},
 		{
+			"name": "BUSINESS_RULE_B",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "91102acc-224b-4dbb-8384-b0c58be8728c",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction status is SETTLED\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"SETTLED\");",
+							"});",
+							"",
+							"pm.test(\"Response returned transaction amount\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.amount).exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference={{reference}}&channel=CLIENT",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "{{reference}}"
+						},
+						{
+							"key": "channel",
+							"value": "CLIENT"
+						}
+					]
+				},
+				"description": "Given: A transaction that is stored in our system\nWhen: I check the status from CLIENT or ATM channel\nAnd the transaction date is before today\nThen: The system returns the status 'SETTLED'\nAnd the amount substracting the fee"
+			},
+			"response": []
+		},
+		{
+			"name": "BUSINESS_RULE_C",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "700df0af-0034-4c63-bb5a-0a59f680e77b",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction status is SETTLED\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"SETTLED\");",
+							"});",
+							"",
+							"pm.test(\"Response returned transaction amount\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.amount).exist;",
+							"});",
+							"",
+							"pm.test(\"Response returned transaction fee\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.fee).exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference={{reference}}&channel=INTERNAL",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "{{reference}}"
+						},
+						{
+							"key": "channel",
+							"value": "INTERNAL"
+						}
+					]
+				},
+				"description": "Given: A transaction that is stored in our system\nWhen: I check the status from INTERNAL channel And the transaction date is before today\nThen: The system returns the status 'SETTLED'\nAnd the amount\nAnd the fee"
+			},
+			"response": []
+		},
+		{
+			"name": "/transactions (date is today)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1f03bf43-15ae-40ba-b121-9929ef0b3454",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction created successfully\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.reference).has.length;",
+							"    pm.globals.set(\"reference\", jsonData.reference);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "58554418-bd63-4f7d-bab9-419e6b07fa58",
+						"exec": [
+							"pm.environment.unset(\"reference\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"reference\":\"\",\n\t\"account_iban\":\"ES9820385778983000760236\",\n\t\"date\":\"\",\n\t\"amount\":18.01,\n\t\"fee\":1.01,\n\t\"description\":\"Card payment\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/transactions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					]
+				},
+				"description": "Retrieves the list of all available accounts"
+			},
+			"response": []
+		},
+		{
+			"name": "BUSINESS_RULE_D",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "43e0d4e3-7f96-4883-a073-bdbfc4c8469b",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction status is PENDING\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"PENDING\");",
+							"});",
+							"",
+							"pm.test(\"Response returned transaction amount\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.amount).exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference={{reference}}&channel=ATM",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "{{reference}}"
+						},
+						{
+							"key": "channel",
+							"value": "ATM"
+						}
+					]
+				},
+				"description": "Given: A transaction that is stored in our system\nWhen: I check the status from CLIENT or ATM channel\nAnd the transaction date is equals to today\nThen: The system returns the status 'PENDING'\nAnd the amount substracting the fee"
+			},
+			"response": []
+		},
+		{
+			"name": "BUSINESS_RULE_E",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ce6e97f1-eef6-4930-8e6a-1d86f6076956",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction status is PENDING\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"PENDING\");",
+							"});",
+							"",
+							"pm.test(\"Response returned transaction amount\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.amount).exist;",
+							"});",
+							"",
+							"pm.test(\"Response returned transaction fee\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.fee).exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference={{reference}}&channel=INTERNAL",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "{{reference}}"
+						},
+						{
+							"key": "channel",
+							"value": "INTERNAL"
+						}
+					]
+				},
+				"description": "Given: A transaction that is stored in our system\nWhen: I check the status from INTERNAL channel\nAnd the transaction date is equals to today\nThen: The system returns the status 'PENDING'\nAnd the amount\nAnd the fee"
+			},
+			"response": []
+		},
+		{
+			"name": "/transactions (date is after today)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "72849197-c6d1-4782-88f0-19ea67190f28",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction created successfully\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.reference).has.length;",
+							"    pm.globals.set(\"reference\", jsonData.reference);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "7c75e1f4-3ff5-4541-b818-b5f40281f442",
+						"exec": [
+							"pm.environment.unset(\"reference\");",
+							"pm.environment.unset(\"transactionDate\");",
+							"",
+							"var moment = require('moment')",
+							"pm.globals.set(\"transactionDate\", moment().add(1, 'd').toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"reference\":\"\",\n\t\"account_iban\":\"ES9820385778983000760236\",\n\t\"date\":\"{{transactionDate}}\",\n\t\"amount\":18.01,\n\t\"fee\":1.01,\n\t\"description\":\"Card payment\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/transactions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "BUSINESS_RULE_F",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "79ebfbf8-7992-439c-8634-b78aab842d88",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction status is FUTURE\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"FUTURE\");",
+							"});",
+							"",
+							"pm.test(\"Response returned transaction amount\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.amount).exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference={{reference}}&channel=CLIENT",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "{{reference}}"
+						},
+						{
+							"key": "channel",
+							"value": "CLIENT"
+						}
+					]
+				},
+				"description": "Given: A transaction that is stored in our system\nWhen: I check the status from CLIENT channel\nAnd the transaction date is greater than today\nThen: The system returns the status 'FUTURE'\nAnd the amount substracting the fee"
+			},
+			"response": []
+		},
+		{
+			"name": "BUSINESS_RULE_G",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a484f1c3-5a24-48e5-aa76-02751e12148c",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction status is PENDING\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"PENDING\");",
+							"});",
+							"",
+							"pm.test(\"Response returned transaction amount\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.amount).exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference={{reference}}&channel=ATM",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "{{reference}}"
+						},
+						{
+							"key": "channel",
+							"value": "ATM"
+						}
+					]
+				},
+				"description": "Given: A transaction that is stored in our system\nWhen: I check the status from ATM channel\nAnd the transaction date is greater than today\nThen: The system returns the status 'PENDING'\nAnd the amount substracting the fee"
+			},
+			"response": []
+		},
+		{
+			"name": "BUSINESS_RULE_H",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f7e0e5ab-8690-4b3b-8b04-04ea0cd2b5e2",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Transaction status is FUTURE\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"FUTURE\");",
+							"});",
+							"",
+							"pm.test(\"Response returned transaction amount\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.amount).exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference={{reference}}&channel=INTERNAL",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "{{reference}}"
+						},
+						{
+							"key": "channel",
+							"value": "INTERNAL"
+						}
+					]
+				},
+				"description": "Given: A transaction that is stored in our system\nWhen: I check the status from INTERNAL channel\nAnd the transaction date is greater than today\nThen: The system returns the status 'FUTURE'\nAnd the amount\nAnd the fee"
+			},
+			"response": []
+		},
+		{
 			"name": "/transactions/searching",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "fc83c67d-c0a0-40d3-9e7e-96f32859969a",
+						"exec": [
+							"pm.test(\"Request was successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Account has 3 transactions\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.transactions).exist;",
+							"    pm.expect(jsonData.transactions).has.length;",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -81,41 +733,6 @@
 							"key": "sort",
 							"value": "amount:asc"
 						}
-					]
-				},
-				"description": "Retrieves the list of all available accounts"
-			},
-			"response": []
-		},
-		{
-			"name": "/transactions",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"reference\":\"\",\n\t\"account_iban\":\"ES9820385778983000760236\",\n\t\"date\":\"\",\n\t\"amount\":18.01,\n\t\"fee\":1.01,\n\t\"description\":\"Card payment\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/transactions",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"transactions"
 					]
 				},
 				"description": "Retrieves the list of all available accounts"

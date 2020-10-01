@@ -1,18 +1,16 @@
 package com.codechallengebackend.demo.bank.controller;
 
-import com.codechallengebackend.demo.bank.application.ExceptionController;
-import com.codechallengebackend.demo.bank.application.TransactionsController;
 import com.codechallengebackend.demo.bank.config.TestBeanConfiguration;
-import com.codechallengebackend.demo.bank.domain.AccountService;
+import com.codechallengebackend.demo.bank.service.AccountService;
 import com.codechallengebackend.demo.bank.domain.Transaction;
-import com.codechallengebackend.demo.bank.domain.TransactionService;
+import com.codechallengebackend.demo.bank.service.TransactionService;
 import com.codechallengebackend.demo.bank.exception.InsufficientAccountBalanceException;
 import com.codechallengebackend.demo.bank.mock.CreateTransactionRequestMockGenerator;
 import com.codechallengebackend.demo.bank.mock.IbanMockGenerator;
 import com.codechallengebackend.demo.bank.mock.TransactionMockGenerator;
-import com.codechallengebackend.demo.bank.model.CreateTransactionRequest;
-import com.codechallengebackend.demo.bank.model.GetTransactionStatusResponse;
-import com.codechallengebackend.demo.bank.model.SearchTransactionResponse;
+import com.codechallengebackend.demo.bank.controller.model.CreateTransactionRequest;
+import com.codechallengebackend.demo.bank.controller.model.GetTransactionStatusResponse;
+import com.codechallengebackend.demo.bank.controller.model.SearchTransactionResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

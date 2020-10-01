@@ -1,7 +1,7 @@
 package com.codechallengebackend.demo.bank.config;
 
-import com.codechallengebackend.demo.bank.adapter.AccountServiceImpl;
-import com.codechallengebackend.demo.bank.domain.AccountService;
+import com.codechallengebackend.demo.bank.service.impl.AccountServiceImpl;
+import com.codechallengebackend.demo.bank.service.AccountService;
 import com.codechallengebackend.demo.bank.repository.AccountRepository;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
