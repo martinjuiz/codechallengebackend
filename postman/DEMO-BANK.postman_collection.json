@@ -48,7 +48,7 @@
 			"response": []
 		},
 		{
-			"name": "BUSINESS_RULE_A",
+			"name": "BUSINESS_RULE_A (INTERNAL)",
 			"event": [
 				{
 					"listen": "test",
@@ -89,6 +89,104 @@
 						{
 							"key": "channel",
 							"value": "INTERNAL"
+						}
+					]
+				},
+				"description": " Given: A transaction that is not stored in our system\n When: I check the status from any channel\n Then: The system returns the status 'INVALID'"
+			},
+			"response": []
+		},
+		{
+			"name": "BUSINESS_RULE_A (ATM)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b2685008-dab2-4bbc-812b-0b3027b30b7c",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"INVALID\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference=zzz&channel=ATM",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "zzz"
+						},
+						{
+							"key": "channel",
+							"value": "ATM"
+						}
+					]
+				},
+				"description": " Given: A transaction that is not stored in our system\n When: I check the status from any channel\n Then: The system returns the status 'INVALID'"
+			},
+			"response": []
+		},
+		{
+			"name": "BUSINESS_RULE_A (CLIENT)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4f698490-9820-47c8-8ead-af1ba219fc2a",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"INVALID\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/transactions?reference=zzz&channel=CLIENT",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "reference",
+							"value": "zzz"
+						},
+						{
+							"key": "channel",
+							"value": "CLIENT"
 						}
 					]
 				},
@@ -161,7 +259,7 @@
 						"transactions"
 					]
 				},
-				"description": "Retrieves the list of all available accounts"
+				"description": "Creates a new transaction dated in the past."
 			},
 			"response": []
 		},
@@ -339,7 +437,7 @@
 						"transactions"
 					]
 				},
-				"description": "Retrieves the list of all available accounts"
+				"description": "Creates a new transaction using the current date."
 			},
 			"response": []
 		},
@@ -520,7 +618,8 @@
 					"path": [
 						"transactions"
 					]
-				}
+				},
+				"description": "Creates a new transaction dated in the future."
 			},
 			"response": []
 		},
