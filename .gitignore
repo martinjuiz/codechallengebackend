@@ -23,4 +23,7 @@
 hs_err_pid*
 /target/
 /.idea/
+/build/
+/gradle/
+/.gradle/
 /demo-bank.iml
