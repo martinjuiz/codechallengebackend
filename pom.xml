@@ -15,6 +15,7 @@
 	<artifactId>demo-bank</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>demo-bank</name>
+	<packaging>jar</packaging>
 	<description>Coding challenge to simulate bank transactions</description>
 
 	<properties>
@@ -127,6 +128,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>app</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
