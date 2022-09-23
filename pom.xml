@@ -15,7 +15,7 @@
 	<artifactId>demo-bank</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>demo-bank</name>
-	<packaging>jar</packaging>
+	<packaging>war</packaging>
 	<description>Coding challenge to simulate bank transactions</description>
 
 	<properties>
